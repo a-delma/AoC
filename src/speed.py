@@ -1,5 +1,6 @@
-import numpy as np
 import networkx as nx
+import numpy as np
+dirs = [(0, 1), (0, -1), (1, 0), (-1, 0)]
 
 UP = [-1, 0]
 RIGHT = [0, 1]

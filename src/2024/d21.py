@@ -1,6 +1,6 @@
 import numpy as np
 from functools import cache
-from speed2 import *
+from src.speed import *
 from itertools import *
 
 A = -2
@@ -11,7 +11,6 @@ def makeDict(grid):
     return {j : np.array([idx, jdx]) for idx, i in enumerate(grid) for jdx, j in enumerate(i)}
 numPad = np.array([[7, 8, 9], [4, 5, 6], [1, 2, 3], [-1, 0, A]])
 arrowPad = np.array([[' ', '^', 'A'], ['<', 'v', '>']])
-# arrowPad = np.array([[-1, 0, A], [3, 2, 1]])
 
 numGraph = makeDict(numPad)
 arrowGraph = makeDict(arrowPad)
@@ -27,7 +26,6 @@ def checkPath(s, p, num = 1, invalid = -1):
     G = numGraph if num else arrowGraph
     pad = numPad if num else arrowPad
     i, j = G[s]
-    # print(f'\tChecking path {p} starting at {s}: ({i}, {j})')
     for d in p:
         if d == '>':
             j += 1
@@ -52,10 +50,9 @@ def checkChanges(p):
 def enterNumberFrom(s, e, numPad = 1):
     G = numGraph if numPad else arrowGraph
     d = G[s] - G[e]
-    # print(f'Navigating from {s} to {e} with {d}')
     paths = ["".join(p) for p in findPaths(d) if checkPath(s, p, numPad, -1 if numPad else ' ')]
-    paths = sorted(paths, key = checkChanges, reverse=False)
-    return paths
+    paths = sorted(paths, key = scorePath if numPad else checkChanges, reverse=False)
+    return paths[0]
 
 def scoreChar(c):
     match c:
@@ -70,45 +67,28 @@ def scoreChar(c):
 def scorePath(p):
     return scoreChar(p[-1]) + checkChanges(p) * 20
 
-def selectBestPath(paths):
-    return sorted(paths, key = scorePath, reverse=False)[0]
 
-paths = []
+numRobots = 25
 scores = []
-# data = data[-1:]
 for i in data:
-    paths.append(i)
-    radRobo = ''
+    target = ''
     cur = A
     for j in i:
         j = A if j == 'A' else int(j)
-        ps = enterNumberFrom(cur, j)
-        radRobo += selectBestPath(ps) + 'A'
+        target += enterNumberFrom(cur, j) + 'A'
         cur = j
-    paths.append(radRobo)
-    # print(radRobo)
+    
+    for r in range(numRobots):
+        print(r, len(target))
+        cur = 'A'
+        curRobo = ''
+        for j in target:
+            curRobo += enterNumberFrom(cur, j, 0) + 'A'
+            cur = j
+        target = curRobo
+            
+    scores.append((len(curRobo) , int(i[:-1])))
 
-    cur = 'A'
-    frozRobo = ''
-    for j in radRobo:
-        frozRobo += enterNumberFrom(cur, j, 0)[0] + 'A'
-        cur = j
-    paths.append(frozRobo)
-    # print(frozRobo)
-
-    cur = 'A'
-    us = ''
-    for j in frozRobo:
-        us += enterNumberFrom(cur, j, 0)[0] + 'A'
-        cur = j
-    scores.append((len(us) , int(i[:-1])))
-    paths.append(us)
-
-# for i in paths:
-#     print(i)
 print(scores)
 print(sum([l * n for (l, n) in scores]))
 
-@cache
-def getArrowPresses(s):
-    pass
